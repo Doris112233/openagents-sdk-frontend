@@ -211,7 +211,18 @@ export function TasksList() {
     dataset_size: 0,
     parameters: "{}"
   })
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      console.log("Selected file:", file)
+    }
+  }
   const table = useReactTable({
     data,
     columns,
@@ -350,10 +361,17 @@ export function TasksList() {
             </div>
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="dataset">Dataset</Label>
-              <Button variant="outline" className="col-span-2">
+              <Button variant="outline" className="col-span-2" onClick={handleUploadClick}>
                 Upload Dataset
                 <UploadIcon className="w-4 h-4" />
               </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".json,.jsonl,.csv,.txt"
+                className="hidden"
+              />
             </div>
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="dataset">Choose a model</Label>
