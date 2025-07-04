@@ -1,24 +1,18 @@
 import * as React from "react"
 import {
-  BookOpen,
   Bot,
   ClipboardList,
   Command,
   LifeBuoy,
   Send,
-  Settings2,
   SquareTerminal,
-  Workflow,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavSecondary } from "@/components/nav-secondary"
-// import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
-  // SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -36,21 +30,6 @@ const data = {
       title: "Playground",
       url: "/playground",
       icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
     },
     {
       title: "Models",
@@ -72,39 +51,6 @@ const data = {
       url: "/tasks",
       icon: ClipboardList,
     },
-    {
-      title: "Flows",
-      url: "/flows",
-      icon: Workflow,
-    },
-    {
-      title: "Documentation",
-      url: "https://github.com/openagentsfoundation/openagents-sdk",
-      icon: BookOpen
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
   ],
   navSecondary: [
     {
@@ -117,16 +63,6 @@ const data = {
       url: "#",
       icon: Send,
     },
-  ],
-  projects: [
-    {
-      name: "Sales & Marketing",
-      url: "#",
-    },
-    {
-      name: "Factory data analysis",
-      url: "#",
-    }
   ],
 }
 
@@ -152,12 +88,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      {/* <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter> */}
     </Sidebar>
   )
 }

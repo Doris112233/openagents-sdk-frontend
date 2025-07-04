@@ -11,12 +11,10 @@ import {
   getSortedRowModel,
   type SortingState,
   useReactTable,
-  type VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, PlusIcon, UploadIcon, SettingsIcon } from "lucide-react"
+import { ArrowUpDown, PlusIcon, UploadIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { 
   Dialog, 
@@ -28,7 +26,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+// import { Textarea } from "@/components/ui/textarea"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,73 +43,23 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-const data: Task[] = [
-  {
-    id: "1",
-    name: "gpt-4o fine-tuning",
-    description: "Fine-tuning gpt-4o with a custom dataset",
-    model: "gpt-4o",
-    dataset: "custom-dataset",
-    dataset_size: 100,
-    parameters: "{}",
-    status: "pending",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01"
-  },
-  {
-    id: "2",
-    name: "qwen2.5-coder-32b-instruct",
-    description: "Fine-tuning qwen2.5-coder-32b-instruct with a custom dataset",
-    model: "qwen2.5-coder-32b-instruct",
-    dataset: "custom-dataset",
-    dataset_size: 100,
-    parameters: "{}",
-    status: "running",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01"
-  },
-  {
-    id: "3",
-    name: "llama3.1-8b-instruct",
-    description: "Fine-tuning llama3.1-8b-instruct with a custom dataset",
-    model: "llama3.1-8b-instruct",
-    dataset: "custom-dataset",
-    dataset_size: 100,
-    parameters: "{}",
-    status: "completed",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01"
-  },
-  {
-    id: "4",
-    name: "deepseek-r1-distill-qwen-32b",
-    description: "Fine-tuning deepseek-r1-distill-qwen-32b with a custom dataset",
-    model: "deepseek-r1-distill-qwen-32b",
-    dataset: "custom-dataset",
-    dataset_size: 100,
-    parameters: "{}",
-    status: "failed",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01"
-  }
-]
+import { useEffect, useRef, useState } from "react"
+
 
 export type Task = {
-  id: string
   name: string
-  description: string
-  model: string
-  status: "pending" | "running" | "completed" | "failed"
-  dataset: string
-  dataset_size: number
-  parameters: string
-  createdAt: string
-  updatedAt: string
+  id: string
+  current_stage: string
+  status: "pending" | "running" | "success" | "failed"
+  base_model: string
+  deploy_status: string
+  created_at: string
+  updated_at: string
 }
 
 const getStatusBadge = (status: string) => {
   switch (status) {
-    case "completed":
+    case "success":
       return "bg-green-100 text-green-800 hover:bg-green-100"
     case "running":
       return "bg-blue-100 text-blue-800 hover:bg-blue-100"
@@ -124,107 +72,167 @@ const getStatusBadge = (status: string) => {
   }
 }
 
-const columns: ColumnDef<Task>[] = [
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string
-      return (
-        <div className="capitalize">
-          <Badge variant="outline" className={`capitalize border-0 ${getStatusBadge(status)}`}>
-            {status}
-          </Badge>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue("description")}</div>
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-    const task = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="h-8 w-20 p-0">
-              Actions
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(task.id)}
-            >
-              Copy task ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to={`/tasks/${task.id}`}>View task details</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>Delete task</DropdownMenuItem>
-            <DropdownMenuItem>Cancel task</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
 export function TasksList() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [isCreateOpen, setIsCreateOpen] = React.useState(false)
-  const [newTask, setNewTask] = React.useState({
-    name: "",
-    description: "",
-    status: "pending" as const,
-    model: "gpt-4o",
-    dataset: "",
-    dataset_size: 0,
-    parameters: "{}"
-  })
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [tasks, setTasks] = useState([])
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click()
+  const loadTasks = () => {
+    fetch("http://localhost:8000/tasks")
+    .then(response => response.json())
+    .then(data => {
+      setTasks(data)
+      console.log("Tasks fetched:", data)
+    })
+    .catch(error => {
+      console.error("Error fetching tasks:", error)
+    })
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      console.log("Selected file:", file)
-    }
+  useEffect(() => {loadTasks()}, [])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewTask(prev => ({ ...prev, name: e.target.value}))
   }
+
+  const handleCreateTask = () => {
+    console.log("Creating task:", newTask)
+    setIsCreateOpen(false)
+    fetch("http://localhost:8000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: newTask.name
+      })
+    }).then(response => response.json())
+    .then(data => {
+      console.log("Task created:", data)
+      loadTasks()
+    })
+    .catch(error => {
+      console.error("Error creating task:", error)
+    })
+  }
+
+  const handleDeleteTask = (id: string) => {
+    fetch(`http://localhost:8000/tasks/${id}`, {
+      method: "DELETE"
+    })
+    .then(data => {
+      console.log("Task deleted:", data)
+      loadTasks()
+    })
+    .catch(error => {
+      console.error("Error deleting task:", error)
+    })
+  }
+
+  const [deleteTarget, setDeleteTarget] = useState<Task | null>(null)
+
+  const [newTask, setNewTask] = useState({name: ""})
+
+
+  const columns: ColumnDef<Task>[] = [
+    {
+      accessorKey: "current_stage",
+      header: "Current Stage",
+      cell: ({ row }) => {
+        const current_stage = row.getValue("current_stage") as string
+        return <div>{current_stage}</div>
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string
+        return (
+          <div className="capitalize flex gap-2">
+            <Badge variant="outline" className={`capitalize border-0 ${getStatusBadge(status)}`}>
+              {status}
+            </Badge>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "deploy_status",
+      header: "Deploy Status",
+      cell: ({ row }) => {
+        const deploy_status = row.getValue("deploy_status") as string
+        return (
+          <div>
+            {deploy_status === "success" && (
+              <Badge variant="outline" className="capitalize border-0 bg-black text-white">
+                Deployed
+              </Badge>
+            )}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Name
+            <ArrowUpDown />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+    },
+
+    {
+      accessorKey: "created_at",
+      header: "Created At",
+      cell: ({ row }) => {
+        const created_at = row.getValue("created_at") as string
+        return <div>{created_at.slice(0, 10)} {created_at.slice(11, 16)}</div>
+      },
+    },
+    {
+      accessorKey: "updated_at",
+      header: "Updated At",
+      cell: ({ row }) => {
+        const updated_at = row.getValue("updated_at") as string
+        return <div>{updated_at.slice(0, 10)} {updated_at.slice(11, 16)}</div>
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+      const task = row.original
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="h-8 w-20 p-0">
+                Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+              <Link to={`/tasks/${task.id}`}>Edit task</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setDeleteTarget(task)}>Delete task</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
+
   const table = useReactTable({
-    data,
+    data: tasks,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -232,13 +240,9 @@ export function TasksList() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
+      columnFilters
     },
   })
 
@@ -304,6 +308,35 @@ export function TasksList() {
           </TableBody>
         </Table>
       </div>
+      <div>
+        <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Delete Task</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete task <strong>{deleteTarget?.name}</strong>?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  if (deleteTarget) {
+                    handleDeleteTask(deleteTarget.id);
+                    setDeleteTarget(null);
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="space-x-2">
           <Button
@@ -331,7 +364,7 @@ export function TasksList() {
             New Task <PlusIcon className="w-4 h-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl w-1/2 h-2/3">
+        <DialogContent className="max-w-4xl w-1/3 h-1/3">
           <DialogHeader>
             <DialogTitle>Create New Task</DialogTitle>
             <DialogDescription>
@@ -344,52 +377,10 @@ export function TasksList() {
               <Input
                 id="name"
                 value={newTask.name}
-                onChange={(e) => setNewTask(prev => ({ ...prev, name: e.target.value }))}
+                onChange={handleInputChange}
                 className="col-span-2 h-8"
                 placeholder="Task name"
               />
-            </div>
-            <div className="grid grid-cols-3 items-center gap-4">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={newTask.description}
-                onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                className="col-span-2 h-16 resize-none"
-                placeholder="Task description"
-              />
-            </div>
-            <div className="grid grid-cols-3 items-center gap-4">
-              <Label htmlFor="dataset">Dataset</Label>
-              <Button variant="outline" className="col-span-2" onClick={handleUploadClick}>
-                Upload Dataset
-                <UploadIcon className="w-4 h-4" />
-              </Button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept=".json,.jsonl,.csv,.txt"
-                className="hidden"
-              />
-            </div>
-            <div className="grid grid-cols-3 items-center gap-4">
-              <Label htmlFor="dataset">Choose a model</Label>
-              <Select
-                value={newTask.model}
-                onValueChange={(value) => setNewTask(prev => ({ ...prev, model: value }))}
-              >
-                <SelectTrigger className="col-span-1">
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                  <SelectItem value="qwen2.5">Qwen2.5</SelectItem>
-                  <SelectItem value="llama3.1">Llama3.1</SelectItem>
-                  <SelectItem value="deepseek-r1">DeepSeek-R1</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" className="col-span-1">Advanced Settings <SettingsIcon className="w-4 h-4" /></Button>
             </div>
           </div>
           <div className="flex justify-end space-x-2 pt-2">
@@ -404,12 +395,8 @@ export function TasksList() {
             </Button>
             <Button
               size="sm"
-              onClick={() => {
-                console.log("Creating task:", newTask)
-                setIsCreateOpen(false)
-                setNewTask({ name: newTask.name, description: newTask.description, status: "pending", model: newTask.model, dataset: newTask.dataset, dataset_size: newTask.dataset_size, parameters: newTask.parameters })
-              }}
-              disabled={!newTask.name.trim() || !newTask.description.trim()}
+              onClick={handleCreateTask}
+              disabled={!newTask.name.trim()}
             >
               Create Task
             </Button>

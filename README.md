@@ -1,69 +1,75 @@
-# React + TypeScript + Vite
+# OpenAgents Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Built with TypeScript, Vite, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js (v20)
+- pnpm (v10.12.3 or higher)
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Clone the repository
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone <repository-url>
+cd openagents_frontend
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Install dependencies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
 ```
+
+### 3. Start the development server
+
+```bash
+pnpm dev
+```
+
+The application will be available at `http://localhost:5173`
+
+### 4. Build for production
+
+```bash
+pnpm build
+```
+
+### 5. Preview production build
+
+```bash
+pnpm preview
+```
+
+## Available Scripts
+
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm preview` - Preview production build
+- `pnpm lint` - Run ESLint
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── app-sidebar.tsx # Main sidebar component
+│   ├── nav-main.tsx    # Main navigation
+│   └── nav-secondary.tsx # Secondary navigation
+├── pages/              # Page components
+│   ├── home.tsx        # Home page
+│   ├── models.tsx      # Models page
+│   ├── playground.tsx  # Playground page
+│   └── tasks/          # Task-related pages
+│       ├── taskslist.tsx   # Task list view
+│       └── taskdetail.tsx  # Task detail view
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+├── assets/             # Static assets
+├── App.tsx             # Main app component
+├── layout.tsx          # Layout wrapper
+└── main.tsx            # Entry point
+```
+
