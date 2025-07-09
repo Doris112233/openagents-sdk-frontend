@@ -12,10 +12,11 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, PlusIcon, UploadIcon } from "lucide-react"
+import { ArrowUpDown, PlusIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { 
   Dialog, 
   DialogContent, 
@@ -46,16 +47,17 @@ import {
 import { useEffect, useRef, useState } from "react"
 
 
-export type Task = {
-  name: string
-  id: string
-  current_stage: string
-  status: "pending" | "running" | "success" | "failed"
-  base_model: string
-  deploy_status: string
-  created_at: string
-  updated_at: string
-}
+// export type Task = {
+//   name: string
+//   id: string
+//   description: string
+//   stage: string
+//   status: string
+//   base_model: string
+//   // deploy_status: string
+//   created_at: string
+//   updated_at: string
+// }
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -76,36 +78,45 @@ export function TasksList() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true)
 
   const loadTasks = () => {
-    fetch("http://localhost:8000/tasks")
+    fetch("http://172.207.17.188:8003/api/tasks")
     .then(response => response.json())
     .then(data => {
       setTasks(data)
       console.log("Tasks fetched:", data)
+      setLoading(false)
     })
     .catch(error => {
       console.error("Error fetching tasks:", error)
     })
   }
 
-  useEffect(() => {loadTasks()}, [])
+  useEffect(() => {
+    loadTasks()
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTask(prev => ({ ...prev, name: e.target.value}))
   }
 
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewTask(prev => ({ ...prev, description: e.target.value}))
+  }
+
   const handleCreateTask = () => {
     console.log("Creating task:", newTask)
     setIsCreateOpen(false)
-    fetch("http://localhost:8000/tasks", {
+    fetch("http://172.207.17.188:8003/api/tasks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: newTask.name
+        name: newTask.name,
+        description: newTask.description,
       })
     }).then(response => response.json())
     .then(data => {
@@ -118,7 +129,7 @@ export function TasksList() {
   }
 
   const handleDeleteTask = (id: string) => {
-    fetch(`http://localhost:8000/tasks/${id}`, {
+    fetch(`http://172.207.17.188:8003/api/tasks/${id}`, {
       method: "DELETE"
     })
     .then(data => {
@@ -130,46 +141,72 @@ export function TasksList() {
     })
   }
 
-  const [deleteTarget, setDeleteTarget] = useState<Task | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null)
 
-  const [newTask, setNewTask] = useState({name: ""})
+  const [newTask, setNewTask] = useState({name: "", description: ""})
 
+  const handleDeploy = (id: string) => {
+    fetch(`http://172.207.17.188:8003/api/tasks/${id}/deployments`, {
+      method: "POST"
+    })
+    .then(data => {
+      console.log("Task deployed:", data)
+      loadTasks()
+    })
+    .catch(error => {
+      console.error("Error deploying task:", error)
+    })
+  }
 
-  const columns: ColumnDef<Task>[] = [
+  const handleUndeploy = (id: string) => {
+    fetch(`http://172.207.17.188:8003/api/tasks/${id}/deployments`, {
+      method: "DELETE"
+    })
+    .then(data => {
+      console.log("Task undeployed:", data)
+      loadTasks()
+    })
+    .catch(error => {
+      console.error("Error undeploying task:", error)
+    })
+  }
+
+  const getStatusByStage = (task: any) => {
+    switch (task.stage) {
+      case "extract_content":
+        return task.documents_info?.status || "Not uploaded";
+      case "generate_sample":
+        return task.samples_info?.status || "Not generated";
+      case "fine_tune":
+        return task.fine_tune_info?.status || "Not fine-tuned";
+      case "deploy":
+        return task.deployment_info?.status || "Not deployed";
+      case "created":
+        return "success";
+      default:
+        return "Unknown stage"
+    }
+  }
+
+  const columns: ColumnDef<any>[] = [
     {
-      accessorKey: "current_stage",
+      accessorKey: "stage",
       header: "Current Stage",
       cell: ({ row }) => {
-        const current_stage = row.getValue("current_stage") as string
-        return <div>{current_stage}</div>
+        const stage = row.getValue("stage") as string
+        return <div className="capitalize">{stage}</div>
       },
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string
+        const status = getStatusByStage(row.original)
         return (
           <div className="capitalize flex gap-2">
             <Badge variant="outline" className={`capitalize border-0 ${getStatusBadge(status)}`}>
               {status}
             </Badge>
-          </div>
-        )
-      },
-    },
-    {
-      accessorKey: "deploy_status",
-      header: "Deploy Status",
-      cell: ({ row }) => {
-        const deploy_status = row.getValue("deploy_status") as string
-        return (
-          <div>
-            {deploy_status === "success" && (
-              <Badge variant="outline" className="capitalize border-0 bg-black text-white">
-                Deployed
-              </Badge>
-            )}
           </div>
         )
       },
@@ -224,6 +261,12 @@ export function TasksList() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setDeleteTarget(task)}>Delete task</DropdownMenuItem>
+              {task.stage === "deploy" && task.deployment_info?.status === "success" && (
+                <DropdownMenuItem onClick={() => handleUndeploy(task.id)}>Undeploy</DropdownMenuItem>
+              )}
+              {/* {(task.stage === "deploy" && task.deployment_info?.status === "stopped") || (task.stage === "fine_tune" && task.fine_tune_info?.status === "success") && (
+                <DropdownMenuItem onClick={() => handleDeploy(task.id)}>Deploy</DropdownMenuItem>
+              )} */}
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -245,6 +288,8 @@ export function TasksList() {
       columnFilters
     },
   })
+
+  if (loading) return <Spinner show={true} size="large" className="justify-center items-center h-screen"/>
 
   return (
     <div className="w-full">
@@ -364,7 +409,7 @@ export function TasksList() {
             New Task <PlusIcon className="w-4 h-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl w-1/3 h-1/3">
+        <DialogContent className="max-w-4xl w-1/3 h-1/2">
           <DialogHeader>
             <DialogTitle>Create New Task</DialogTitle>
             <DialogDescription>
@@ -380,6 +425,16 @@ export function TasksList() {
                 onChange={handleInputChange}
                 className="col-span-2 h-8"
                 placeholder="Task name"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                value={newTask.description}
+                onChange={handleDescriptionChange}
+                className="col-span-2 h-8"
+                placeholder="Task description"
               />
             </div>
           </div>

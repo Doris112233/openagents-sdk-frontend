@@ -1,6 +1,6 @@
 import * as React from "react"
 import {
-  Bot,
+  // Bot,
   ClipboardList,
   Command,
   LifeBuoy,
@@ -31,21 +31,21 @@ const data = {
       url: "/playground",
       icon: SquareTerminal,
     },
-    {
-      title: "Models",
-      url: "/models",
-      icon: Bot,
-      items: [
-        {
-          title: "gpt-4o",
-          url: "#",
-        },
-        {
-          title: "qwen2.5",
-          url: "#",
-        },
-      ],
-    },
+    // {
+    //   title: "Models",
+    //   url: "/models",
+    //   icon: Bot,
+    //   items: [
+    //     {
+    //       title: "gpt-4o",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "qwen2.5",
+    //       url: "#",
+    //     },
+    //   ],
+    // },
     {
       title: "Tasks",
       url: "/tasks",
@@ -87,7 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain}/>
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
     </Sidebar>
