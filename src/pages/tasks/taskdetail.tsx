@@ -262,7 +262,6 @@ export default function TaskDetail() {
                                     <Upload className="w-4 h-4 mr-2" />
                                     Select New Document
                                 </Button>
-                                {/* {selectedFile && <span className="text-sm w-1/4">{selectedFile.name}</span>} */}
                                 <input
                                     type="file"
                                     accept=".pdf,.zip"
@@ -282,6 +281,7 @@ export default function TaskDetail() {
                                     Upload
                                 </Button>
                             </div>
+                            {selectedFile && <span className="text-sm w-full text-end">{selectedFile.name}</span>}
                             </div>
                     </div>
                     
