@@ -193,7 +193,7 @@ export default function TaskDetail() {
     if (loading) return <Spinner show={true} size="large" className="justify-center items-center h-screen"/>
     
     return (
-        <div className="flex flex-col gap-4 justify-center items-center h-screen">
+        <div className="flex flex-col gap-4 justify-center items-center h-full w-full">
             <div className="flex flex-row w-full justify-start pr-8 pt-4">
                 <Button size="sm" variant="outline" onClick={() => { loadTask(); loadDocuments(); }}>
                     <RefreshCcw className="h-4 w-4 mr-1" />

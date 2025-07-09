@@ -24,7 +24,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <DynamicBreadcrumb />
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-screen">
             {children}
           </div>
         </SidebarInset>

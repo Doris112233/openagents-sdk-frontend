@@ -145,7 +145,7 @@ export default function Playground() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col gap-4 h-full w-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
@@ -184,7 +184,6 @@ export default function Playground() {
         ))}
         <div ref={messagesEndRef} />
       </div>
-
       <div className="p-4 border-t">
         <div className="flex gap-2">
           <Select value={selectedTask} onValueChange={setSelectedTask}>
