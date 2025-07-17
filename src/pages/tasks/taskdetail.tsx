@@ -35,8 +35,7 @@ export default function TaskDetail() {
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
-    // const [uploading, setUploading] = useState(false)
-    const [fineTuning, setFineTuning] = useState(false)
+    // const [fineTuning, setFineTuning] = useState(false)
     const [deploying, setDeploying] = useState(false)
     const [baseModel, setBaseModel] = useState<string>("")
     const [status, setStatus] = useState<string>("")
@@ -112,7 +111,6 @@ export default function TaskDetail() {
     }
 
     const handleStartFineTune = () => {
-        setFineTuning(true)
         fetch(`http://172.207.17.188:8003/api/tasks/${id}/fine_tunes?base_model=${encodeURIComponent(baseModel)}`, {
             method: "POST"
         })
@@ -123,11 +121,9 @@ export default function TaskDetail() {
         .then(data => {
             console.log(data);
             loadTask();
-            setFineTuning(false);
         })
         .catch(error => {
             console.error("Error starting fine tune:", error);
-            setFineTuning(false);
         });
     }
 

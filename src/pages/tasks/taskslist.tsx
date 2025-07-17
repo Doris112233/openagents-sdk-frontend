@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-// import { Textarea } from "@/components/ui/textarea"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,20 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-import { useEffect, useRef, useState } from "react"
-
-
-// export type Task = {
-//   name: string
-//   id: string
-//   description: string
-//   stage: string
-//   status: string
-//   base_model: string
-//   // deploy_status: string
-//   created_at: string
-//   updated_at: string
-// }
+import { useEffect, useState } from "react"
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -261,12 +247,12 @@ export function TasksList() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setDeleteTarget(task)}>Delete task</DropdownMenuItem>
-              {task.stage === "deploy" && task.deployment_info?.status === "success" && (
-                <DropdownMenuItem onClick={() => handleUndeploy(task.id)}>Undeploy</DropdownMenuItem>
+              {task.stage === "deploy" && (
+                <DropdownMenuItem onClick={() => handleUndeploy(task.id)}>Stop Deployment</DropdownMenuItem>
               )}
-              {/* {(task.stage === "deploy" && task.deployment_info?.status === "stopped") || (task.stage === "fine_tune" && task.fine_tune_info?.status === "success") && (
+              {((task.stage === "deploy" && task.deployment_info?.status !== "success") || (task.stage === "fine_tune" && task.fine_tune_info?.status === "success")) && (
                 <DropdownMenuItem onClick={() => handleDeploy(task.id)}>Deploy</DropdownMenuItem>
-              )} */}
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )

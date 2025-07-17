@@ -17,17 +17,33 @@ type Message = {
   id: string;
 };
 
+interface Task {
+  created_at: string;
+  updated_at: string;
+  deployment_info: {
+    created_at: string;
+    status: string;
+    updated_at: string;
+  };
+  description: string;
+  fine_tune_info: {
+    lora_name: string;
+  };
+  id: string;
+  name: string;
+}
+
 export default function Playground() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [tasks, setTasks] = useState([]);
-  const [selectedTask, setSelectedTask] = useState();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const loadModels = () => {
     fetch("http://172.207.17.188:8003/api/tasks")
       .then((response) => response.json())
-      .then((data) => {
+      .then((data: Task[]) => {
         const availableTasks = data.filter(
           (task) => task.deployment_info?.status == "success"
         );
@@ -63,15 +79,20 @@ export default function Playground() {
     setMessages(newMessages);
     setInput("");
 
+    if (!selectedTask) {
+      console.error("No task selected");
+      return;
+    }
+
     const res = await fetch(
-      `http://172.207.17.188:8003/api/tasks/${selectedTask?.id}/v1/chat/completions`,
+      `http://172.207.17.188:8003/api/tasks/${selectedTask.id}/v1/chat/completions`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: selectedTask?.fine_tune_info?.lora_name,
+          model: selectedTask.fine_tune_info.lora_name,
           messages: newMessages,
           chat_template_kwargs: {
             enable_thinking: false,
@@ -186,13 +207,19 @@ export default function Playground() {
       </div>
       <div className="p-4 border-t">
         <div className="flex gap-2">
-          <Select value={selectedTask} onValueChange={setSelectedTask}>
+          <Select 
+            value={selectedTask?.id || ""} 
+            onValueChange={(value) => {
+              const task = tasks.find(t => t.id === value);
+              setSelectedTask(task || null);
+            }}
+          >
             <SelectTrigger className="w-[240px]">
               <SelectValue placeholder="Select model" />
             </SelectTrigger>
             <SelectContent>
               {tasks.map((task) => (
-                <SelectItem key={task.id} value={task}>
+                <SelectItem key={task.id} value={task.id}>
                   {task.fine_tune_info?.lora_name}
                 </SelectItem>
               ))}
